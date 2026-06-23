@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Login | srlabel_by_ranga</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main id="admin-login-app" class="auth-page" v-cloak>
+    <form class="auth-card" @submit.prevent="login">
+      <a class="auth-card__brand" href="index.html">srlabel_by_ranga</a>
+      <p>Store Admin</p>
+      <h1>Sign in</h1>
+
+      <label>Email<input v-model.trim="email" type="email" autocomplete="email" required></label>
+      <label>Password<input v-model="password" type="password" autocomplete="current-password" required></label>
+
+      <button type="submit" :disabled="isLoading">{{ isLoading ? 'Signing in...' : 'Login' }}</button>
+      <p v-if="statusMessage" class="auth-card__status">{{ statusMessage }}</p>
+      <a class="auth-card__link" href="index.html">Back to store</a>
+    </form>
+  </main>
+
+  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <script src="admin-auth.js"></script>
+  <script src="admin-login.js"></script>
+</body>
+</html>

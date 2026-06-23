@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Terms &amp; Conditions | srlabel_by_ranga</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body data-policy="terms">
+  <header class="site-header">
+    <a class="brand" href="index.html">srlabel_by_ranga</a>
+    <nav class="site-header__nav" aria-label="Main navigation">
+      <a href="index.html">Home</a>
+      <a href="index.html">Womenswear</a>
+      <a href="index.html">My Collection</a>
+      <div class="nav-menu" data-admin-menu hidden>
+        <a class="nav-menu__trigger" href="admin.html">Admin <span aria-hidden="true"></span></a>
+        <div class="nav-menu__dropdown nav-menu__dropdown--admin">
+          <a href="admin.html#products">Add product</a>
+          <a href="admin.html#products">Edit or remove products</a>
+          <a href="admin.html#settings">Add hero section image</a>
+          <a href="admin.html#settings">Edit homepage sections</a>
+          <a href="admin.html#sizeChart">Add size chart row</a>
+          <a href="admin.html#sizeChart">Edit or remove size chart</a>
+          <a href="admin.html#policies">Edit policies and About Us</a>
+          <a href="admin.html#settings">Contact and social settings</a>
+        </div>
+      </div>
+      <a href="admin-login.html" data-login-link>Login</a>
+      <a href="about-us.html">About Us</a>
+      <a href="index.html#contact">Contact Us</a>
+    </nav>
+    <a class="site-header__action" href="index.html">Shop now</a>
+  </header>
+
+  <main class="info-page">
+    <a class="page-back" href="index.html">Back to home</a>
+
+    <div class="info-page__header">
+      <p>Information</p>
+      <h1 data-policy-title>Terms &amp; Conditions</h1>
+    </div>
+
+    <div class="info-page__content" data-policy-content></div>
+  </main>
+
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <script src="admin-auth.js"></script>
+  <script src="public-auth.js"></script>
+  <script src="policy-page.js"></script>
+</body>
+</html>

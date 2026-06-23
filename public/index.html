@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>srlabel_by_ranga | Women's Wear</title>
+  <link rel="preconnect" href="https://unpkg.com">
+  <link rel="preconnect" href="https://www.gstatic.com">
+  <link rel="preconnect" href="https://firestore.googleapis.com">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="app" v-cloak>
+  <header class="site-header">
+    <a class="brand" href="#" @click.prevent="goHome">srlabel_by_ranga</a>
+    <button
+      class="site-header__menu-toggle"
+      type="button"
+      :aria-expanded="isMobileMenuOpen ? 'true' : 'false'"
+      aria-controls="mobile-menu"
+      aria-label="Open menu"
+      @click="toggleMobileMenu"
+    >
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
+    <nav class="site-header__nav" aria-label="Main navigation">
+      <a href="#" @click.prevent="goHome">Home</a>
+      <div
+        class="nav-menu"
+        :class="{ 'is-open': activeMenu === 'womenswear' }"
+        @mouseenter="openMenu('womenswear')"
+        @mouseleave="closeMenu"
+      >
+        <a class="nav-menu__trigger" href="#" @click.prevent="showAllProducts">Womenswear <span aria-hidden="true"></span></a>
+        <div class="nav-menu__dropdown">
+          <a v-for="category in categories" :key="category" href="#" @click.prevent="openCategory(category)">{{ category }}</a>
+        </div>
+      </div>
+      <div
+        class="nav-menu"
+        :class="{ 'is-open': activeMenu === 'collection' }"
+        @mouseenter="openMenu('collection')"
+        @mouseleave="closeMenu"
+      >
+        <a class="nav-menu__trigger" href="#" @click.prevent="showAllProducts">My Collection <span aria-hidden="true"></span></a>
+        <div class="nav-menu__dropdown">
+          <a v-for="tag in allTags" :key="tag" href="#" @click.prevent="openTag(tag)">{{ tag }}</a>
+        </div>
+      </div>
+      <a href="#" @click.prevent="openTag('Bestseller')">Bestseller</a>
+      <div
+        v-if="isAdmin"
+        class="nav-menu"
+        :class="{ 'is-open': activeMenu === 'admin' }"
+        @mouseenter="openMenu('admin')"
+        @mouseleave="closeMenu"
+      >
+        <a class="nav-menu__trigger" href="admin.html">Admin <span aria-hidden="true"></span></a>
+        <div class="nav-menu__dropdown nav-menu__dropdown--admin">
+          <a href="admin.html#products">Add product</a>
+          <a href="admin.html#products">Edit or remove products</a>
+          <a href="admin.html#settings">Add hero section image</a>
+          <a href="admin.html#settings">Edit homepage sections</a>
+          <a href="admin.html#sizeChart">Add size chart row</a>
+          <a href="admin.html#sizeChart">Edit or remove size chart</a>
+          <a href="admin.html#policies">Edit policies and About Us</a>
+          <a href="admin.html#settings">Contact and social settings</a>
+        </div>
+      </div>
+      <a href="about-us.html">About Us</a>
+      <a href="#" @click.prevent="scrollToFooter">Contact Us</a>
+    </nav>
+    <div class="site-header__actions">
+      <button class="site-header__cart" type="button" @click="openCart" aria-label="Open cart">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M3 4h2.1l2.2 10.4a2.4 2.4 0 0 0 2.35 1.9h7.7a2.4 2.4 0 0 0 2.31-1.75L21.2 8H7.2L6.7 5.5A2 2 0 0 0 4.75 4H3Zm4.8 3.5h11.3l-1.15 4.55a1 1 0 0 1-.97.75H9.65a1 1 0 0 1-.98-.8L7.8 7.5ZM10 20.5a1.8 1.8 0 1 0 0-3.6 1.8 1.8 0 0 0 0 3.6Zm7 0a1.8 1.8 0 1 0 0-3.6 1.8 1.8 0 0 0 0 3.6Z"/>
+        </svg>
+        <span v-if="cartItemCount">{{ cartItemCount }}</span>
+      </button>
+    </div>
+  </header>
+
+  <div v-if="isMobileMenuOpen" class="mobile-menu" @click.self="closeMobileMenu">
+    <aside id="mobile-menu" class="mobile-menu__panel" aria-label="Mobile navigation">
+      <button class="mobile-menu__close" type="button" @click="closeMobileMenu" aria-label="Close menu">X</button>
+      <nav class="mobile-menu__nav" aria-label="Mobile navigation">
+        <a href="#" @click.prevent="goHome">Home</a>
+
+        <details class="mobile-menu__details">
+          <summary>Womenswear</summary>
+          <a href="#" @click.prevent="showAllProducts">All womenswear</a>
+          <a v-for="category in categories" :key="category" href="#" @click.prevent="openCategory(category)">{{ category }}</a>
+        </details>
+
+        <details class="mobile-menu__details">
+          <summary>My Collection</summary>
+          <a href="#" @click.prevent="showAllProducts">All collection</a>
+          <a v-for="tag in allTags" :key="tag" href="#" @click.prevent="openTag(tag)">{{ tag }}</a>
+        </details>
+
+        <a href="#" @click.prevent="openTag('Bestseller')">Bestseller</a>
+        <details v-if="isAdmin" class="mobile-menu__details">
+          <summary>Admin</summary>
+          <a href="admin.html#products">Add product</a>
+          <a href="admin.html#products">Edit or remove products</a>
+          <a href="admin.html#settings">Add hero section image</a>
+          <a href="admin.html#settings">Edit homepage sections</a>
+          <a href="admin.html#sizeChart">Add size chart row</a>
+          <a href="admin.html#sizeChart">Edit or remove size chart</a>
+          <a href="admin.html#policies">Edit policies and About Us</a>
+          <a href="admin.html#settings">Contact and social settings</a>
+        </details>
+
+        <a href="about-us.html">About Us</a>
+        <a href="#" @click.prevent="scrollToFooter">Contact Us</a>
+      </nav>
+    </aside>
+  </div>
+
+  <main>
+    <section id="hero" v-show="viewMode === 'featured' && siteSettings.heroImages.length" class="hero" aria-label="Featured collection">
+      <div class="hero__backdrop" aria-hidden="true"></div>
+
+      <div class="hero__carousel">
+        <div class="hero__track">
+          <figure v-for="(heroImage, index) in siteSettings.heroImages" :key="heroImage" class="hero__slide" :data-index="index">
+            <img :src="heroImage" :alt="'srlabel_by_ranga hero image ' + (index + 1)">
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <div id="collection-app">
+      <section id="philosophy" v-if="viewMode === 'featured' && hasPhilosophyContent" class="philosophy" aria-labelledby="philosophy-title">
+        <div v-if="siteSettings.philosophyLeftImage" class="philosophy__image philosophy__image--left">
+          <img :src="siteSettings.philosophyLeftImage" alt="">
+        </div>
+        <div class="philosophy__content">
+          <p v-if="siteSettings.philosophyScript" class="philosophy__script">{{ siteSettings.philosophyScript }}</p>
+          <p v-if="siteSettings.philosophyEyebrow" class="philosophy__eyebrow">{{ siteSettings.philosophyEyebrow }}</p>
+          <h2 v-if="siteSettings.philosophyTitle" id="philosophy-title">{{ siteSettings.philosophyTitle }}</h2>
+          <p v-if="siteSettings.philosophyBody">{{ siteSettings.philosophyBody }}</p>
+        </div>
+        <div v-if="siteSettings.philosophyRightImage" class="philosophy__image philosophy__image--right">
+          <img :src="siteSettings.philosophyRightImage" alt="">
+        </div>
+      </section>
+
+      <section id="products" v-if="viewMode !== 'size' && viewMode !== 'product' && viewMode !== 'checkout'" class="featured-collection" :class="{ 'featured-collection--catalog': viewMode === 'all' }" aria-labelledby="featured-collection-title">
+        <div class="collection-heading">
+          <h2 id="featured-collection-title">{{ collectionTitle }}</h2>
+          <p v-if="isLoadingProducts" class="collection-count">Loading products...</p>
+          <p v-if="viewMode === 'all'" class="collection-count">{{ filteredProducts.length }} products</p>
+        </div>
+
+        <div v-if="viewMode === 'all'" class="collection-toolbar" aria-label="Collection filters">
+          <div class="collection-toolbar__start">
+            <button class="collection-back" type="button" @click="goHome">Back</button>
+
+            <label class="filter-control">
+              <span>Filter</span>
+              <select v-model="selectedCategory">
+                <option value="All">All</option>
+                <option v-for="category in categories" :key="category" :value="category">{{ category }}</option>
+              </select>
+            </label>
+          </div>
+
+          <label class="filter-control">
+            <span>Sort</span>
+            <select v-model="sortOrder">
+              <option value="new">Date, new to old</option>
+              <option value="price-low">Price, low to high</option>
+              <option value="price-high">Price, high to low</option>
+              <option value="name">Alphabetically, A-Z</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="collection-grid">
+          <article v-for="(product, index) in visibleProducts" :key="product.id" class="product-card">
+            <button class="product-card__media" type="button" @click="openProduct(product)">
+              <img :src="product.image" :alt="product.alt" :loading="index < 4 ? 'eager' : 'lazy'" :fetchpriority="index < 4 ? 'high' : 'auto'" decoding="async">
+            </button>
+            <button class="product-card__title" type="button" @click="openProduct(product)">
+              <h3>{{ product.name }}</h3>
+            </button>
+            <p>{{ formatPrice(product.price) }}</p>
+          </article>
+        </div>
+
+        <p v-if="!isLoadingProducts && !visibleProducts.length" class="collection-count">
+          {{ productLoadMessage || 'No products available.' }}
+        </p>
+
+        <button v-if="viewMode === 'featured' && !isLoadingProducts" class="view-all-button" type="button" @click="showAllProducts">
+          View all
+        </button>
+      </section>
+
+      <section id="size-promo" v-if="viewMode === 'featured' && hasSizePromoContent" class="size-promo" aria-labelledby="size-promo-title">
+        <img v-if="siteSettings.sizePromoImage" :src="siteSettings.sizePromoImage" alt="srlabel_by_ranga size guide">
+        <div class="size-promo__panel">
+          <p v-if="siteSettings.sizePromoEyebrow">{{ siteSettings.sizePromoEyebrow }}</p>
+          <h2 v-if="siteSettings.sizePromoTitle" id="size-promo-title">{{ siteSettings.sizePromoTitle }}</h2>
+          <span v-if="siteSettings.sizePromoBody">{{ siteSettings.sizePromoBody }}</span>
+          <button type="button" @click="openSizeGuide">Check your size</button>
+        </div>
+      </section>
+
+      <section id="size-guide" v-if="viewMode === 'size'" class="size-guide" aria-labelledby="size-guide-title">
+        <div class="size-guide__intro">
+          <p v-if="siteSettings.sizeGuideIntroEyebrow">{{ siteSettings.sizeGuideIntroEyebrow }}</p>
+          <h1 id="size-guide-title">{{ siteSettings.sizeGuideIntroTitle }}</h1>
+          <span v-if="siteSettings.sizeGuideIntroBody">{{ siteSettings.sizeGuideIntroBody }}</span>
+        </div>
+
+        <div class="size-guide__layout">
+          <div v-if="siteSettings.sizeGuideArtImage" class="size-guide__art" aria-hidden="true">
+            <img :src="siteSettings.sizeGuideArtImage" alt="">
+          </div>
+
+          <div class="size-guide__table-wrap">
+            <table class="size-table">
+              <thead>
+                <tr>
+                  <th>Size</th>
+                  <th>Bust</th>
+                  <th>Waist</th>
+                  <th>Hip</th>
+                  <th>Shoulder</th>
+                  <th>Armhole</th>
+                  <th v-if="hasSizeChartTags">Tag</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="row in sizeRows" :key="row.size">
+                  <th>{{ row.size }}</th>
+                  <td>{{ row.bust }}</td>
+                  <td>{{ row.waist }}</td>
+                  <td>{{ row.hip }}</td>
+                  <td>{{ row.shoulder }}</td>
+                  <td>{{ row.armhole }}</td>
+                  <td v-if="hasSizeChartTags">{{ row.tag }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="size-guide__notes">
+          <article v-if="siteSettings.sizeGuideNoteOneTitle || siteSettings.sizeGuideNoteOneBody">
+            <h2 v-if="siteSettings.sizeGuideNoteOneTitle">{{ siteSettings.sizeGuideNoteOneTitle }}</h2>
+            <p v-if="siteSettings.sizeGuideNoteOneBody">{{ siteSettings.sizeGuideNoteOneBody }}</p>
+          </article>
+          <article v-if="siteSettings.sizeGuideNoteTwoTitle || siteSettings.sizeGuideNoteTwoBody">
+            <h2 v-if="siteSettings.sizeGuideNoteTwoTitle">{{ siteSettings.sizeGuideNoteTwoTitle }}</h2>
+            <p v-if="siteSettings.sizeGuideNoteTwoBody">{{ siteSettings.sizeGuideNoteTwoBody }}</p>
+          </article>
+        </div>
+      </section>
+
+      <section v-if="viewMode === 'product' && selectedProduct" class="product-detail" aria-labelledby="product-detail-title">
+        <button class="page-back product-detail__back" type="button" @click="returnToCollection">Back to collection</button>
+
+        <div class="product-detail__layout">
+          <div class="product-detail__gallery">
+            <div class="product-detail__thumbs" aria-label="Product images">
+              <button
+                v-for="image in productGallery"
+                :key="image"
+                type="button"
+                :class="{ 'is-active': selectedProductImage === image }"
+                @click="selectedProductImage = image"
+              >
+                <img :src="image" :alt="selectedProduct.alt">
+              </button>
+            </div>
+
+            <div class="product-detail__image">
+              <img :src="selectedProductImage" :alt="selectedProduct.alt">
+            </div>
+          </div>
+
+          <div class="product-detail__info">
+            <p class="product-detail__category">{{ selectedProduct.category }}</p>
+            <h1 id="product-detail-title">{{ selectedProduct.name }}</h1>
+            <p class="product-detail__price">{{ formatPrice(selectedProduct.price) }}</p>
+            <p class="product-detail__tax">Tax included. Shipping calculated at checkout.</p>
+
+            <div class="product-detail__copy">
+              <p v-if="productDescription">{{ productDescription }}</p>
+              <p v-if="selectedProduct.components">Components: {{ selectedProduct.components }}</p>
+              <p v-if="selectedProduct.fit">Fit: {{ selectedProduct.fit }}</p>
+              <p v-if="selectedProduct.washCare">Wash care: {{ selectedProduct.washCare }}</p>
+            </div>
+
+            <button class="product-detail__accordion" type="button" @click="showProductSizeChart = !showProductSizeChart">
+              <span>Size Chart</span>
+              <span>{{ showProductSizeChart ? '-' : '+' }}</span>
+            </button>
+
+            <div v-if="showProductSizeChart" class="product-detail__size-chart">
+              <table class="size-table">
+                <thead>
+                  <tr>
+                    <th>Size</th>
+                    <th>Bust</th>
+                    <th>Waist</th>
+                    <th>Hip</th>
+                    <th>Shoulder</th>
+                    <th>Armhole</th>
+                    <th v-if="hasSizeChartTags">Tag</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="row in sizeRows" :key="row.size">
+                    <th>{{ row.size }}</th>
+                    <td>{{ row.bust }}</td>
+                    <td>{{ row.waist }}</td>
+                    <td>{{ row.hip }}</td>
+                    <td>{{ row.shoulder }}</td>
+                    <td>{{ row.armhole }}</td>
+                    <td v-if="hasSizeChartTags">{{ row.tag }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div v-if="productColorOptions.length" class="product-detail__colors" aria-label="Select color">
+              <p>Color</p>
+              <div>
+                <button
+                  v-for="option in productColorOptions"
+                  :key="option.label"
+                  type="button"
+                  :class="{ 'is-selected': option.product === selectedProduct }"
+                  @click="selectProductColor(option.product)"
+                >
+                  {{ option.label }}
+                </button>
+              </div>
+            </div>
+
+            <div class="product-detail__sizes" aria-label="Select size">
+              <p>Size</p>
+              <div>
+                <button
+                  v-for="size in sizeChoices"
+                  :key="size"
+                  type="button"
+                  :class="{ 'is-selected': selectedSize === size }"
+                  @click="selectSize(size)"
+                >
+                  {{ size }}
+                </button>
+              </div>
+              <label v-if="isCustomSizeSelected" class="product-detail__custom-size">
+                <span>Custom size details</span>
+                <textarea
+                  v-model="selectedCustomSizeDetails"
+                  placeholder="Enter bust, waist, hip, height, or any fit note"
+                ></textarea>
+              </label>
+            </div>
+
+            <button class="product-detail__cart" type="button" @click="addToCart">
+              Add to cart
+            </button>
+            <button class="product-detail__buy" type="button" @click="buyNow">
+              Buy now
+            </button>
+            <p v-if="cartMessage" class="product-detail__message">{{ cartMessage }}</p>
+          </div>
+        </div>
+      </section>
+
+      <section v-if="viewMode === 'checkout'" class="checkout-page" aria-labelledby="checkout-title">
+        <div class="checkout-page__form">
+          <button class="page-back checkout-page__back" type="button" @click="returnToCartSource">Back</button>
+
+          <section class="checkout-panel" aria-labelledby="checkout-contact-title">
+            <div class="checkout-panel__heading">
+              <h1 id="checkout-title">Checkout</h1>
+            </div>
+
+            <h2 id="checkout-contact-title">Contact</h2>
+            <input v-model="checkout.email" type="email" placeholder="Email">
+            <label class="checkout-check">
+              <input v-model="checkout.marketing" type="checkbox">
+              <span>Email me with news and offers</span>
+            </label>
+          </section>
+
+          <section class="checkout-panel" aria-labelledby="delivery-title">
+            <h2 id="delivery-title">Delivery</h2>
+            <select v-model="checkout.country">
+              <option>India</option>
+            </select>
+            <div class="checkout-grid checkout-grid--two">
+              <input v-model="checkout.firstName" type="text" placeholder="First name">
+              <input v-model="checkout.lastName" type="text" placeholder="Last name">
+            </div>
+            <input v-model="checkout.address" type="text" placeholder="Address">
+            <input v-model="checkout.apartment" type="text" placeholder="Apartment, suite, etc. (optional)">
+            <div class="checkout-grid checkout-grid--three">
+              <input v-model="checkout.city" type="text" placeholder="City">
+              <select v-model="checkout.state">
+                <option>Karnataka</option>
+                <option>Telangana</option>
+                <option>Maharashtra</option>
+                <option>Delhi</option>
+              </select>
+              <input v-model="checkout.pin" type="text" placeholder="PIN code">
+            </div>
+            <input v-model="checkout.phone" type="tel" placeholder="Phone">
+          </section>
+
+          <section class="checkout-panel">
+            <h2>Shipping method</h2>
+            <div class="checkout-muted">Enter your shipping address to view available shipping methods.</div>
+          </section>
+
+          <section class="checkout-panel">
+            <h2>Payment</h2>
+            <p>Online payment gateway is coming soon.</p>
+            <div class="checkout-payment checkout-payment--manual">
+              <strong>Manual payment confirmation</strong>
+              <span>Place your order now. Our team will call you to confirm payment and delivery details.</span>
+            </div>
+          </section>
+
+          <button class="checkout-pay" type="button" @click="placeOrder">Place order</button>
+          <div v-if="orderPlaced" class="order-confirmation">
+            <h2>Your order is placed</h2>
+            <p>We have prepared the order details. Our team will contact you for payment confirmation.</p>
+            <a :href="ownerWhatsappUrl" target="_blank" rel="noopener">Send order on WhatsApp</a>
+          </div>
+        </div>
+
+        <aside class="checkout-summary" aria-label="Order summary">
+          <article v-for="item in cartItems" :key="item.id" class="checkout-item">
+            <img :src="item.image" :alt="item.product">
+            <div>
+              <h2>{{ item.product }}</h2>
+              <p>{{ item.size }}<span v-if="item.color"> / {{ item.color }}</span></p>
+              <p v-if="item.customSizeDetails">Custom: {{ item.customSizeDetails }}</p>
+            </div>
+            <span>{{ formatPrice(item.price * item.quantity) }}</span>
+          </article>
+
+          <div class="checkout-discount">
+            <input type="text" placeholder="Discount code">
+            <button type="button">Apply</button>
+          </div>
+
+          <dl class="checkout-totals">
+            <div>
+              <dt>Subtotal</dt>
+              <dd>{{ formatPrice(cartSubtotal) }}</dd>
+            </div>
+            <div>
+              <dt>Shipping</dt>
+              <dd>Enter shipping address</dd>
+            </div>
+            <div>
+              <dt>Total</dt>
+              <dd>{{ formatPrice(cartSubtotal) }}</dd>
+            </div>
+          </dl>
+        </aside>
+      </section>
+
+    </div>
+  </main>
+
+  <div v-if="isCartOpen" class="cart-overlay" @click.self="closeCart">
+    <aside class="cart-drawer" aria-label="Shopping cart">
+      <div class="cart-drawer__header">
+        <h2>Cart</h2>
+        <button type="button" @click="closeCart">X</button>
+      </div>
+
+      <p v-if="!cartItems.length" class="cart-drawer__empty">Your cart is empty. Add item to continue.</p>
+
+      <div v-else class="cart-drawer__items">
+        <article v-for="item in cartItems" :key="item.id" class="cart-line">
+          <img :src="item.image" :alt="item.product">
+          <div class="cart-line__content">
+            <h3>{{ item.product }}</h3>
+            <p><strong>Size:</strong> {{ item.size }}</p>
+            <p v-if="item.customSizeDetails"><strong>Custom:</strong> {{ item.customSizeDetails }}</p>
+            <p v-if="item.color"><strong>Color:</strong> {{ item.color }}</p>
+            <div class="cart-line__qty">
+              <button type="button" @click="decreaseQuantity(item.id)">-</button>
+              <span>{{ item.quantity }}</span>
+              <button type="button" @click="increaseQuantity(item.id)">+</button>
+            </div>
+          </div>
+          <p class="cart-line__price">{{ formatPrice(item.price * item.quantity) }}</p>
+        </article>
+
+        <label class="cart-note">
+          <span>Order note</span>
+          <textarea v-model="orderNote"></textarea>
+        </label>
+
+        <div class="cart-drawer__subtotal">
+          <span>Subtotal</span>
+          <strong>{{ formatPrice(cartSubtotal) }}</strong>
+        </div>
+        <p class="cart-drawer__helper">Shipping, taxes, and discount codes calculated at checkout.</p>
+        <button class="cart-drawer__checkout" type="button" @click="openCheckout">
+          Check out
+        </button>
+      </div>
+    </aside>
+  </div>
+
+  <footer id="contact" class="site-footer">
+    <div class="site-footer__inner">
+      <address class="site-footer__contact">
+        <h2>Contact</h2>
+        <a v-if="siteSettings.phone" :href="contactPhoneHref">{{ siteSettings.phone }}</a>
+        <a v-if="siteSettings.email" :href="contactEmailHref">{{ siteSettings.email }}</a>
+        <p v-if="siteSettings.address">{{ siteSettings.address }}</p>
+      </address>
+
+      <nav class="site-footer__nav" aria-label="Footer information">
+        <h2>Information</h2>
+        <a href="privacy-policy.html">Privacy Policy</a>
+        <a href="refund-policy.html">Refund Policy</a>
+        <a href="terms-conditions.html">Terms &amp; Conditions</a>
+      </nav>
+
+      <form class="site-footer__newsletter" @submit.prevent="subscribe">
+        <h2 v-if="siteSettings.newsletterTitle">{{ siteSettings.newsletterTitle }}</h2>
+        <p v-if="siteSettings.newsletterDescription">{{ siteSettings.newsletterDescription }}</p>
+        <label>
+          <span>Email address</span>
+          <input v-model="email" type="email" placeholder="you@example.com" required>
+        </label>
+        <button type="submit">Subscribe</button>
+        <small v-if="subscribeMessage">{{ subscribeMessage }}</small>
+      </form>
+    </div>
+
+    <div class="site-footer__bottom">
+      <p>&copy; 2026 srlabel_by_ranga. All rights reserved.</p>
+      <div class="site-footer__social" aria-label="Social links">
+        <a :href="footerWhatsappUrl" target="_blank" rel="noopener" aria-label="Chat with srlabel_by_ranga on WhatsApp">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M12.04 3.5a8.45 8.45 0 0 0-7.22 12.84l-.94 3.43 3.51-.92A8.44 8.44 0 1 0 12.04 3.5Zm0 15.33a6.88 6.88 0 0 1-3.5-.96l-.25-.15-2.08.55.56-2.03-.16-.26a6.87 6.87 0 1 1 5.93 3.45Zm3.77-5.14c-.2-.1-1.22-.6-1.41-.67-.19-.07-.33-.1-.47.1-.14.2-.54.67-.66.81-.12.14-.24.15-.45.05-.2-.1-.86-.32-1.64-1.02-.61-.54-1.02-1.21-1.14-1.41-.12-.2-.01-.32.09-.42.09-.09.2-.24.31-.36.1-.12.14-.2.2-.34.07-.14.03-.26-.02-.36-.05-.1-.47-1.13-.64-1.55-.17-.41-.34-.35-.47-.36h-.4c-.14 0-.36.05-.55.26-.19.2-.72.7-.72 1.71s.74 1.99.84 2.13c.1.14 1.45 2.22 3.52 3.11.49.21.88.34 1.18.43.5.16.94.14 1.3.08.4-.06 1.22-.5 1.39-.98.17-.48.17-.89.12-.98-.05-.09-.19-.14-.4-.24Z"/>
+          </svg>
+        </a>
+        <a :href="siteSettings.instagramUrl" target="_blank" rel="noopener" aria-label="Visit srlabel_by_ranga on Instagram">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M7.7 2.8h8.6c2.6 0 4.7 2.1 4.7 4.7v8.9c0 2.6-2.1 4.7-4.7 4.7H7.7c-2.6 0-4.7-2.1-4.7-4.7V7.5c0-2.6 2.1-4.7 4.7-4.7Zm0 1.8c-1.6 0-2.9 1.3-2.9 2.9v8.9c0 1.6 1.3 2.9 2.9 2.9h8.6c1.6 0 2.9-1.3 2.9-2.9V7.5c0-1.6-1.3-2.9-2.9-2.9H7.7Zm4.3 3.4a4.2 4.2 0 1 1 0 8.4 4.2 4.2 0 0 1 0-8.4Zm0 1.8a2.4 2.4 0 1 0 0 4.8 2.4 2.4 0 0 0 0-4.8Zm4.8-2.5a1 1 0 1 1 0 2.1 1 1 0 0 1 0-2.1Z"/>
+          </svg>
+        </a>
+        <a :href="siteSettings.facebookUrl" target="_blank" rel="noopener" aria-label="Visit srlabel_by_ranga on Facebook">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M14 8.5V6.9c0-.7.5-.9 1-.9h1.8V3.2c-.9-.1-1.8-.2-2.7-.2-2.7 0-4.5 1.6-4.5 4.6v2.1H6.7v3.2h2.9V21H14v-8.1h2.9l.5-3.2H14Z"/>
+          </svg>
+        </a>
+      </div>
+    </div>
+  </footer>
+
+  <button class="floating-whatsapp" type="button" @click="openWhatsappChat" aria-label="Chat with srlabel_by_ranga on WhatsApp">
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M12.04 3.5a8.45 8.45 0 0 0-7.22 12.84l-.94 3.43 3.51-.92A8.44 8.44 0 1 0 12.04 3.5Zm0 15.33a6.88 6.88 0 0 1-3.5-.96l-.25-.15-2.08.55.56-2.03-.16-.26a6.87 6.87 0 1 1 5.93 3.45Zm3.77-5.14c-.2-.1-1.22-.6-1.41-.67-.19-.07-.33-.1-.47.1-.14.2-.54.67-.66.81-.12.14-.24.15-.45.05-.2-.1-.86-.32-1.64-1.02-.61-.54-1.02-1.21-1.14-1.41-.12-.2-.01-.32.09-.42.09-.09.2-.24.31-.36.1-.12.14-.2.2-.34.07-.14.03-.26-.02-.36-.05-.1-.47-1.13-.64-1.55-.17-.41-.34-.35-.47-.36h-.4c-.14 0-.36.05-.55.26-.19.2-.72.7-.72 1.71s.74 1.99.84 2.13c.1.14 1.45 2.22 3.52 3.11.49.21.88.34 1.18.43.5.16.94.14 1.3.08.4-.06 1.22-.5 1.39-.98.17-.48.17-.89.12-.98-.05-.09-.19-.14-.4-.24Z"/>
+    </svg>
+  </button>
+
+  <section v-if="isWhatsappChatOpen" class="whatsapp-chat" aria-label="WhatsApp chat">
+    <header class="whatsapp-chat__header">
+      <h2>WhatsApp</h2>
+      <button type="button" @click="closeWhatsappChat" aria-label="Close WhatsApp chat">X</button>
+    </header>
+    <div class="whatsapp-chat__body" aria-hidden="true"></div>
+    <form class="whatsapp-chat__form" @submit.prevent="sendWhatsappMessage">
+      <input v-model="whatsappMessage" type="text" placeholder="Hello, I need some information.">
+      <button type="submit" aria-label="Send WhatsApp message">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M3 4.5 21 12 3 19.5v-6l11-1.5L3 10.5Z"/>
+        </svg>
+      </button>
+    </form>
+  </section>
+  </div>
+
+  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <script src="admin-auth.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

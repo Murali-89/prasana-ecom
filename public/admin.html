@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>srlabel_by_ranga Admin</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="admin-app" class="admin-shell" :class="{ 'admin-shell--loading': !isAdminReady }" v-cloak>
+    <p v-if="!isAdminReady" class="admin-auth-check">{{ statusMessage || 'Checking admin access...' }}</p>
+
+    <aside v-if="isAdminReady" class="admin-sidebar">
+      <button type="button" :class="{ 'is-active': activeTab === 'products' }" @click="setActiveTab('products')">Products</button>
+      <button type="button" :class="{ 'is-active': activeTab === 'sizeChart' }" @click="setActiveTab('sizeChart')">Size Chart</button>
+      <button type="button" :class="{ 'is-active': activeTab === 'policies' }" @click="setActiveTab('policies')">Policies</button>
+      <button type="button" :class="{ 'is-active': activeTab === 'settings' }" @click="setActiveTab('settings')">Settings</button>
+    </aside>
+
+    <main v-if="isAdminReady" class="admin-main">
+      <header class="admin-header">
+        <div>
+          <p>Store Admin</p>
+          <h1>{{ tabTitle }}</h1>
+        </div>
+        <div class="admin-header__actions">
+          <a class="admin-link-button" :href="previewHref">Back to Home</a>
+          <button type="button" @click="loadAll">Refresh</button>
+          <button type="button" @click="logout">Logout</button>
+        </div>
+      </header>
+
+      <p v-if="statusMessage" class="admin-status">{{ statusMessage }}</p>
+
+      <section v-if="activeTab === 'products'" class="admin-section">
+        <form class="admin-form" @submit.prevent="saveProduct">
+          <div class="admin-form__grid">
+            <label>Name<input v-model="productForm.name" required></label>
+            <label>Price<input v-model.number="productForm.price" type="number" required></label>
+            <label>Category
+              <select v-model="productForm.category" required>
+                <option value="" disabled>Select category</option>
+                <option v-for="category in productCategoryOptions" :key="category" :value="category">{{ category }}</option>
+              </select>
+            </label>
+            <label>Tags comma separated<input v-model="productForm.tagsText"></label>
+            <label>Color<input v-model="productForm.color" placeholder="Peach, Blue, Black"></label>
+            <label>Product date<input v-model="productForm.date" type="date"></label>
+          </div>
+          <label>Product image URLs comma separated<textarea v-model="productForm.imagesText"></textarea></label>
+          <label class="admin-upload">
+            <span>Upload product images</span>
+            <input type="file" accept="image/*" multiple @change="uploadFiles($event, 'productImages', 'products')">
+          </label>
+          <label>Description<textarea v-model="productForm.description"></textarea></label>
+          <label class="admin-check"><input v-model="productForm.active" type="checkbox"> Active product</label>
+          <div class="admin-actions">
+            <button type="submit">{{ productForm.id ? 'Update product' : 'Add product' }}</button>
+            <button type="button" @click="resetProductForm">Clear</button>
+          </div>
+        </form>
+
+        <div class="admin-list">
+          <article v-for="product in products" :key="product.id" class="admin-list__item">
+            <img :src="product.image" :alt="product.alt">
+            <div>
+              <h2>{{ product.name }}</h2>
+              <p>{{ product.category }} | {{ formatPrice(product.price) }}</p>
+              <p v-if="product.color">Color: {{ product.color }}</p>
+              <p>{{ product.active ? 'Active' : 'Hidden' }}</p>
+            </div>
+            <div class="admin-list__actions">
+              <button type="button" @click="editProduct(product)">Edit</button>
+              <button type="button" @click="deleteProduct(product.id)">Delete</button>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section v-if="activeTab === 'sizeChart'" class="admin-section">
+        <form class="admin-form" @submit.prevent="saveSizeRow">
+          <div class="admin-form__grid admin-form__grid--compact">
+            <label>Size<input v-model="sizeForm.size" required></label>
+            <label>Bust<input v-model="sizeForm.bust"></label>
+            <label>Waist<input v-model="sizeForm.waist"></label>
+            <label>Hip<input v-model="sizeForm.hip"></label>
+            <label>Shoulder<input v-model="sizeForm.shoulder"></label>
+            <label>Armhole<input v-model="sizeForm.armhole"></label>
+            <label>Tag<input v-model="sizeForm.tag" placeholder="Most preferred, Relaxed fit"></label>
+            <label>Sort order<input v-model.number="sizeForm.sortOrder" type="number"></label>
+          </div>
+          <div class="admin-actions">
+            <button type="submit">{{ sizeForm.id ? 'Update size' : 'Add size' }}</button>
+            <button type="button" @click="resetSizeForm">Clear</button>
+          </div>
+        </form>
+
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Size</th>
+              <th>Bust</th>
+              <th>Waist</th>
+              <th>Hip</th>
+              <th>Shoulder</th>
+              <th>Armhole</th>
+              <th>Tag</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="row in sizeRows" :key="row.id">
+              <td>{{ row.size }}</td>
+              <td>{{ row.bust }}</td>
+              <td>{{ row.waist }}</td>
+              <td>{{ row.hip }}</td>
+              <td>{{ row.shoulder }}</td>
+              <td>{{ row.armhole }}</td>
+              <td>{{ row.tag }}</td>
+              <td>
+                <button type="button" @click="editSizeRow(row)">Edit</button>
+                <button type="button" @click="deleteSizeRow(row.id)">Delete</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section v-if="activeTab === 'policies'" class="admin-section">
+        <form class="admin-form" @submit.prevent="savePolicy">
+          <div class="admin-form__grid">
+            <label>Policy key
+              <select v-model="policyForm.id" @change="loadPolicyIntoForm(policyForm.id)">
+                <option value="privacy">Privacy Policy</option>
+                <option value="refund">Refund Policy</option>
+                <option value="terms">Terms & Conditions</option>
+                <option value="about">About Us</option>
+              </select>
+            </label>
+            <label>Title<input v-model="policyForm.title" required></label>
+          </div>
+          <label>Sections JSON<textarea v-model="policyForm.sectionsJson"></textarea></label>
+          <div class="admin-actions">
+            <button type="submit">Save policy</button>
+            <button type="button" @click="loadPolicyIntoForm(policyForm.id)">Reload selected</button>
+          </div>
+        </form>
+      </section>
+
+      <section v-if="activeTab === 'settings'" class="admin-section">
+        <div class="admin-setting-tabs" aria-label="Site setting sections">
+          <button
+            v-for="section in settingSections"
+            :key="section.id"
+            type="button"
+            :class="{ 'is-active': activeSettingsSection === section.id }"
+            @click="editSettingsSection(section.id)"
+          >
+            {{ section.title }}
+          </button>
+        </div>
+
+        <form class="admin-form" @submit.prevent="saveSettingsSection">
+          <h2>{{ activeSettingSection.title }}</h2>
+
+          <template v-if="activeSettingsSection === 'contact'">
+            <div class="admin-form__grid">
+              <label>Phone<input v-model="settingsForm.phone"></label>
+              <label>Email<input v-model="settingsForm.email"></label>
+              <label>WhatsApp number<input v-model="settingsForm.whatsappNumber"></label>
+              <label>Instagram URL<input v-model="settingsForm.instagramUrl"></label>
+              <label>Facebook URL<input v-model="settingsForm.facebookUrl"></label>
+            </div>
+            <label>Address<textarea v-model="settingsForm.address"></textarea></label>
+          </template>
+
+          <template v-if="activeSettingsSection === 'hero'">
+            <label>Homepage hero image URLs comma separated<textarea v-model="settingsForm.heroImagesText"></textarea></label>
+            <label class="admin-upload">
+              <span>Upload hero images</span>
+              <input type="file" accept="image/*" multiple @change="uploadFiles($event, 'heroImagesText', 'hero')">
+            </label>
+          </template>
+
+          <template v-if="activeSettingsSection === 'categories'">
+            <div class="admin-inline-form">
+              <label>Category name<input v-model="newCategory" placeholder="Kurtas, Sarees, Co-ords"></label>
+              <button type="button" @click="addProductCategory">Add category</button>
+            </div>
+
+            <div class="admin-chip-list" aria-label="Product categories">
+              <span v-for="category in settingsForm.categories" :key="category" class="admin-chip">
+                {{ category }}
+                <button type="button" @click="removeProductCategory(category)" :aria-label="'Remove ' + category">Remove</button>
+              </span>
+            </div>
+          </template>
+
+          <template v-if="activeSettingsSection === 'philosophy'">
+            <div class="admin-form__grid">
+              <label>Script text<input v-model="settingsForm.philosophyScript"></label>
+              <label>Eyebrow<input v-model="settingsForm.philosophyEyebrow"></label>
+              <label>Title<input v-model="settingsForm.philosophyTitle"></label>
+              <label>Left image URL<input v-model="settingsForm.philosophyLeftImage"></label>
+              <label>Right image URL<input v-model="settingsForm.philosophyRightImage"></label>
+              <label class="admin-upload">
+                <span>Upload left image</span>
+                <input type="file" accept="image/*" @change="uploadFiles($event, 'philosophyLeftImage', 'settings')">
+              </label>
+              <label class="admin-upload">
+                <span>Upload right image</span>
+                <input type="file" accept="image/*" @change="uploadFiles($event, 'philosophyRightImage', 'settings')">
+              </label>
+            </div>
+            <label>Body<textarea v-model="settingsForm.philosophyBody"></textarea></label>
+          </template>
+
+          <template v-if="activeSettingsSection === 'sizePromo'">
+            <div class="admin-form__grid">
+              <label>Eyebrow<input v-model="settingsForm.sizePromoEyebrow"></label>
+              <label>Title<input v-model="settingsForm.sizePromoTitle"></label>
+              <label>Image URL<input v-model="settingsForm.sizePromoImage"></label>
+              <label class="admin-upload">
+                <span>Upload promo image</span>
+                <input type="file" accept="image/*" @change="uploadFiles($event, 'sizePromoImage', 'settings')">
+              </label>
+            </div>
+            <label>Body<textarea v-model="settingsForm.sizePromoBody"></textarea></label>
+          </template>
+
+          <template v-if="activeSettingsSection === 'sizeGuide'">
+            <div class="admin-form__grid">
+              <label>Eyebrow<input v-model="settingsForm.sizeGuideIntroEyebrow"></label>
+              <label>Title<input v-model="settingsForm.sizeGuideIntroTitle"></label>
+              <label>Art image URL<input v-model="settingsForm.sizeGuideArtImage"></label>
+              <label class="admin-upload">
+                <span>Upload guide image</span>
+                <input type="file" accept="image/*" @change="uploadFiles($event, 'sizeGuideArtImage', 'settings')">
+              </label>
+              <label>First note title<input v-model="settingsForm.sizeGuideNoteOneTitle"></label>
+              <label>Second note title<input v-model="settingsForm.sizeGuideNoteTwoTitle"></label>
+            </div>
+            <label>Intro body<textarea v-model="settingsForm.sizeGuideIntroBody"></textarea></label>
+            <label>First note body<textarea v-model="settingsForm.sizeGuideNoteOneBody"></textarea></label>
+            <label>Second note body<textarea v-model="settingsForm.sizeGuideNoteTwoBody"></textarea></label>
+          </template>
+
+          <template v-if="activeSettingsSection === 'footer'">
+            <div class="admin-form__grid">
+              <label>Newsletter title<input v-model="settingsForm.newsletterTitle"></label>
+              <label>Newsletter description<input v-model="settingsForm.newsletterDescription"></label>
+            </div>
+          </template>
+
+          <div class="admin-actions">
+            <button type="submit">Save {{ activeSettingSection.title }}</button>
+            <button type="button" @click="deleteSettingsSection(activeSettingSection.id)">Delete section content</button>
+            <a class="admin-link-button" :href="activeSettingSection.previewHref">Back to output</a>
+          </div>
+        </form>
+
+        <div class="admin-list">
+          <article v-for="section in savedSettingSections" :key="section.id" class="admin-list__item admin-list__item--section">
+            <div v-if="section.images && section.images.length" class="admin-image-grid">
+              <figure v-for="(image, index) in section.images" :key="image + index" class="admin-image-grid__item">
+                <img :src="image" :alt="section.title">
+                <button type="button" @click="deleteHeroImage(index)">Delete</button>
+              </figure>
+            </div>
+            <img v-else-if="section.image" :src="section.image" :alt="section.title">
+            <div v-else class="admin-list__placeholder" aria-hidden="true">{{ section.shortTitle }}</div>
+            <div>
+              <h2>{{ section.title }}</h2>
+              <p>{{ section.summary }}</p>
+            </div>
+            <div class="admin-list__actions">
+              <button type="button" @click="editSettingsSection(section.id)">Edit</button>
+              <button type="button" @click="deleteSettingsSection(section.id)">Delete</button>
+              <a class="admin-link-button" :href="section.previewHref">View</a>
+            </div>
+          </article>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-storage-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <script src="admin-auth.js"></script>
+  <script src="admin.js"></script>
+</body>
+</html>
